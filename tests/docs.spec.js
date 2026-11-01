@@ -12,7 +12,7 @@ test('documentation tabs, copying, and live zoom modes', async ({ page, browserN
   if (browserName === 'chromium') {
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.locator('#panel-esm .copy').first().click();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('npm install /путь/к/zoomix-0.1.0.tgz');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('npm install zoomix');
   }
   const photo = page.locator('#demo-photo');
   for (const mode of ['inner', 'side', 'lens']) {

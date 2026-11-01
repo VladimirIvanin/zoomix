@@ -54,7 +54,7 @@ for (const [name, adapter] of Object.entries(adapters)) {
     const el = document.createElement('div');
     el.className = item;
     const id = ++count;
-    el.innerHTML = `<div class="sample"><div data-zoomix="side"><img draggable="false" src="/optic.svg?frame=${id}" alt="Объектив, кадр ${id}"></div><small>Кадр ${id}</small></div>`;
+    el.innerHTML = `<div class="sample"><div data-zoomix="side"><img draggable="false" src="${import.meta.env.BASE_URL}optic.svg?frame=${id}" alt="Объектив, кадр ${id}"></div><small>Кадр ${id}</small></div>`;
     return el;
   }
   section.querySelector('.' + list).append(slide(), slide(), slide(), slide());

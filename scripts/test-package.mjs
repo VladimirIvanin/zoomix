@@ -1,3 +1,4 @@
+import { gunzipSync } from 'node:zlib';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -17,13 +18,17 @@ function run(file, args, cwd) {
 try {
   const [packed] = JSON.parse(run(npm, ['pack', '--ignore-scripts', '--json', '--pack-destination', directory], project));
   const files = packed.files.map(file => file.path);
-  for (const file of ['dist/zoomix.js', 'dist/zoomix.min.js', 'dist/zoomix.css', 'dist/index.d.ts']) assert(files.includes(file), file);
+  for (const file of ['dist/zoomix.js', 'dist/zoomix.min.js', 'dist/zoomix.css', 'dist/index.d.ts', 'browser-build/zoomix.min.js', 'browser-build/zoomix.min.js.gz', 'browser-build/zoomix.css', 'LICENSE']) assert(files.includes(file), file);
   assert(!files.some(file => /^(tests|node_modules|src)\//.test(file)), 'Do not ship tests, sources or dependencies');
 
   const consumer = join(directory, 'consumer');
   mkdirSync(consumer);
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
   run(npm, ['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', join(directory, packed.filename)], consumer);
+  const browserPath = join(consumer, 'node_modules/zoomix/browser-build');
+  const browserJS = readFileSync(join(browserPath, 'zoomix.min.js'));
+  assert.deepEqual(gunzipSync(readFileSync(join(browserPath, 'zoomix.min.js.gz'))), browserJS);
+  assert.deepEqual(browserJS, readFileSync(join(consumer, 'node_modules/zoomix/dist/zoomix.min.js')));
   const smoke = `
     import assert from 'node:assert/strict';
     import { existsSync } from 'node:fs';
@@ -32,7 +37,7 @@ try {
     assert.equal(typeof document, 'undefined');
     assert.equal(Zoomix, NamedZoomix);
     assert.equal(typeof Zoomix, 'function');
-    for (const path of ['zoomix/style.css', 'zoomix/browser']) {
+    for (const path of ['zoomix/style.css', 'zoomix/browser', 'zoomix/browser-build/zoomix.min.js', 'zoomix/browser-build/zoomix.css']) {
       assert(existsSync(fileURLToPath(import.meta.resolve(path))), path);
     }
   `;

@@ -146,3 +146,16 @@ const state = zoom.getState();
 События загрузки содержат `source`, `requestedSource`, `fallback`. Ошибка оригинала публикует `error`; `fallback: true` означает попытку загрузить превью. Успешный fallback публикует `load`, ошибка превью — ещё один `error`. Устаревшие ответы после смены источника или уничтожения игнорируются.
 
 Примеры InSales: [examples/insales.js](examples/insales.js). Внешние подписки привязывайте к `scope.signal`, чтобы автоматическое уничтожение группы снимало и их. Настоящая витрина и редактор требуют отдельной интеграционной проверки.
+
+## Публикация
+
+npm-публикация запускается при публикации GitHub Release с тегом `vX.Y.Z`. К релизу прикладываются браузерные JS, CSS, gzip и npm-архив; тот же архив отправляется в npm через Trusted Publishing. GitHub Pages собирается отдельно для `/zoomix/`.
+
+После первого выпуска установка: `npm install zoomix`. CDN:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zoomix@0.1.0/browser-build/zoomix.css">
+<script defer src="https://cdn.jsdelivr.net/npm/zoomix@0.1.0/browser-build/zoomix.min.js"></script>
+```
+
+Используйте одинаковую точную версию JS и CSS. Эти URL начнут работать после публикации соответствующей версии в npm. Однократная настройка npm/GitHub Pages и порядок выпусков: [RELEASING.md](RELEASING.md).
