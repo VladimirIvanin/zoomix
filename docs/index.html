@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Документация · Zoomix</title>
+  <meta name="description" content="Подключение Zoomix: увеличение фотографий товара, HTML и TypeScript, настройки и интеграция с галереями.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./docs.css">
+  <link rel="stylesheet" href="/dist/zoomix.css">
+  <script type="module" src="./docs.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">К документации</a>
+  <header class="header">
+    <a class="wordmark" href="/docs/" aria-label="Zoomix — документация"><img src="/zoomix-logo.svg" alt="Zoomix" width="142" height="36"></a>
+    <span class="header-label">Документация <span class="version">v0.1.0</span></span>
+    <a class="demo-link" href="/examples/">Открыть демо <span aria-hidden="true">↗</span></a>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <details class="contents" open>
+        <summary>На этой странице</summary>
+        <nav aria-label="Разделы документации">
+          <a href="#start" aria-current="location"><span>01</span> Быстрый старт</a>
+          <a href="#modes"><span>02</span> Режимы увеличения</a>
+          <a href="#options"><span>03</span> Параметры</a>
+          <a href="#scopes"><span>04</span> Группы и подписки</a>
+          <a href="#methods"><span>05</span> Методы</a>
+          <a href="#appearance"><span>06</span> Оформление</a>
+          <a href="#galleries"><span>07</span> Галереи</a>
+          <a href="#controls"><span>08</span> Управление</a>
+          <a href="#questions"><span>09</span> Частые вопросы</a>
+        </nav>
+      </details>
+      <div class="sidebar-note">Ближе к деталям.<br><span>Без зависимостей.</span></div>
+    </aside>
+    <main id="content">
+      <div class="intro">
+        <p class="eyebrow">Zoomix / Руководство</p>
+        <h1>Детали имеют значение.</h1>
+        <p class="lead">Добавьте увеличение фотографий товара в свою витрину. Три режима, несколько строк кода — и всё внимание к деталям.</p>
+        <div class="intro-meta"><span>TypeScript</span><span>Без runtime-зависимостей</span><span>Мышь · касание · клавиатура</span></div>
+      </div>
+
+      <section id="start">
+        <div class="section-heading"><span>01</span><h2>Быстрый старт</h2></div>
+        <p>Выберите способ подключения. Для обычной HTML-страницы достаточно двух файлов и атрибута на обёртке фотографии.</p>
+        <div class="tabs" role="tablist" aria-label="Способ подключения">
+          <button id="tab-html" role="tab" aria-selected="true" aria-controls="panel-html" tabindex="0">HTML</button>
+          <button id="tab-esm" role="tab" aria-selected="false" aria-controls="panel-esm" tabindex="-1">ESM / TypeScript</button>
+        </div>
+        <div id="panel-html" role="tabpanel" aria-labelledby="tab-html" tabindex="0">
+          <p>Соберите проект командой <code>npm run build</code> и скопируйте <code>dist/zoomix.min.js</code> и <code>dist/zoomix.css</code> в ресурсы вашей темы.</p>
+          <div class="code-block"><div class="code-header"><span>HTML · автоматическое подключение</span><button class="copy" type="button">Копировать</button></div><pre><code>&lt;link rel="stylesheet" href="/assets/zoomix.css"&gt;
+&lt;script defer src="/assets/zoomix.min.js"&gt;&lt;/script&gt;
+
+&lt;div data-zoomix="inner" data-zoom-scale="2"&gt;
+  &lt;img
+    src="/products/watch-640.jpg"
+    data-zoom-src="/products/watch-2400.jpg"
+    width="640" height="480"
+    alt="Циферблат часов"
+    draggable="false"
+  &gt;
+&lt;/div&gt;</code></pre></div>
+          <p>Браузерная сборка сама подключает существующие и добавленные элементы <code>[data-zoomix]</code>, а при удалении из DOM освобождает их экземпляры.</p>
+        </div>
+        <div id="panel-esm" role="tabpanel" aria-labelledby="tab-esm" tabindex="0" hidden>
+          <p>В репозитории Zoomix выполните <code>npm pack</code>. Установите полученный архив в проект магазина:</p>
+          <div class="code-block"><div class="code-header"><span>Терминал · в проекте магазина</span><button class="copy" type="button">Копировать</button></div><pre><code>npm install /путь/к/zoomix-0.1.0.tgz</code></pre></div>
+          <p>Создайте обёртку <code>&lt;div id="product-photo"&gt;</code> с одной фотографией внутри и инициализируйте её после появления в DOM.</p>
+          <div class="code-block"><div class="code-header"><span>TypeScript · ручное подключение</span><button class="copy" type="button">Копировать</button></div><pre><code>import Zoomix from 'zoomix';
+import 'zoomix/style.css';
+
+const photo = document.querySelector&lt;HTMLElement&gt;('#product-photo');
+
+if (photo) {
+  const zoom = new Zoomix(photo, {
+    mode: 'inner',
+    scale: 2,
+  });
+
+  // При размонтировании компонента: zoom.destroy();
+}</code></pre></div>
+          <p>ESM-сборка оставляет инициализацию приложению. В браузерной сборке конструктор доступен как <code>window.Zoomix</code>; для ручной настройки используйте обёртку без <code>data-zoomix</code>.</p>
+        </div>
+        <aside class="note"><strong>Одна обёртка — одна фотография.</strong> Превью и большой оригинал должны показывать одинаковый кадр с теми же пропорциями. Размер фотографии задаёт CSS вашей темы.</aside>
+      </section>
+
+      <section id="modes">
+        <div class="section-heading"><span>02</span><h2>Режимы увеличения</h2></div>
+        <p>Выберите режим и наведите курсор на изображение. На сенсорном экране коснитесь его: увеличение всегда откроется внутри кадра.</p>
+        <div class="mode-picker" role="group" aria-label="Режим увеличения">
+          <button data-mode="inner" aria-pressed="true">В кадре <code>inner</code></button>
+          <button data-mode="side" aria-pressed="false">Рядом <code>side</code></button>
+          <button data-mode="lens" aria-pressed="false">Лупа <code>lens</code></button>
+        </div>
+        <div class="demo-stage"><figure><div id="demo-photo" data-zoomix="inner"><img src="/optic.svg" width="1600" height="1000" alt="Диафрагма объектива на координатной сетке" draggable="false"></div><figcaption><span>01 / Оптика</span><span>50 мм · f/1.8</span></figcaption></figure><div class="demo-description"><span class="demo-cross" aria-hidden="true">+</span><p id="mode-description" aria-live="polite">Увеличение внутри фотографии. Подходит для компактных карточек товара.</p><code id="mode-code">data-zoomix="inner"</code></div></div>
+        <p class="caption">В этом примере <code>sideTarget</code> выводит детали в область с описанием рядом с фото. Без заданной панели окно появляется справа или слева; если места недостаточно, Zoomix переключается на <code>inner</code>. При касании всегда используется <code>inner</code>.</p>
+      </section>
+
+      <section id="options">
+        <div class="section-heading"><span>03</span><h2>Параметры</h2></div>
+        <p>Передайте настройки при первом создании экземпляра: <code>new Zoomix(element, options)</code>. JS-настройки <code>mode</code> и <code>scale</code> имеют приоритет над HTML-атрибутами.</p>
+        <div class="table-scroll" role="region" aria-label="Параметры Zoomix" tabindex="0"><table><thead><tr><th>Параметр</th><th>По умолчанию</th><th>Описание</th></tr></thead><tbody>
+          <tr><td><code>mode</code><small>data-zoomix</small></td><td><code>'inner'</code></td><td><code>'inner'</code>, <code>'side'</code> или <code>'lens'</code>.</td></tr>
+          <tr><td><code>scale</code><small>data-zoom-scale</small></td><td><code>2</code></td><td>Желаемая кратность. Фактическое увеличение ограничено разрешением оригинала.</td></tr>
+          <tr><td><code>sideTarget</code><small>Только JavaScript</small></td><td><code>undefined</code></td><td>HTMLElement для вывода режима <code>side</code>. Задайте размер этой панели в CSS.</td></tr>
+          <tr><td><code>data-zoom-src</code><small>Атрибут на img</small></td><td>Источник превью</td><td>Адрес большого изображения. Если загрузка не удалась, используется источник превью.</td></tr>
+        </tbody></table></div>
+        <details class="disclosure"><summary>Увеличение в отдельной панели</summary><div class="code-block"><div class="code-header"><span>HTML + JavaScript</span><button class="copy" type="button">Копировать</button></div><pre><code>&lt;div id="photo"&gt;
+  &lt;img src="/products/watch-640.jpg"
+       data-zoom-src="/products/watch-2400.jpg"
+       width="640" height="480" alt="Циферблат часов"&gt;
+&lt;/div&gt;
+&lt;div id="detail" style="width: 320px; height: 320px"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  // Выполните после загрузки браузерной сборки Zoomix.
+  const zoom = new window.Zoomix(document.querySelector('#photo'), {
+    mode: 'side',
+    sideTarget: document.querySelector('#detail'),
+  });
+&lt;/script&gt;</code></pre></div></details>
+      </section>
+
+      <section id="scopes">
+        <h2>Группы и подписки</h2>
+        <p><code>Zoomix.get(element)</code> и <code>Zoomix.getScope(root)</code> получают существующие объекты. Методы <code>open()</code>, <code>enable()</code>, <code>disable()</code> и <code>update(patch)</code> управляют фотографией. <code>getState()</code> различает запрос открытия, видимость, загрузку и уничтожение; effectiveMode и effectiveScale показывают фактическое увеличение.</p>
+        <pre><code>const scope = Zoomix.mount(widgetRoot, {
+  selector: '.js-product-zoom',
+  options: { mode: 'side', scale: 2 }
+});
+const off = scope.on('open', event =&gt; console.log(event.instance));
+scope.close();
+scope.destroy();</code></pre>
+        <p>Группа предоставляет getInstances(), refresh(), update(), close(), enable(), disable(), destroy(), on() и signal. Новые фото подключаются автоматически, удалённые освобождаются. Управляемые фото используют собственный селектор без data-zoomix. У фотографии один владелец. Скрытие сохраняет группу; удаление её корня уничтожает группу.</p>
+        <p>События: statechange, open, close, loadstart, load, error, destroy; у группы также mount и unmount. Метод on() возвращает функцию отписки и принимает { once, signal }. События фото содержат element, instance и state; группа добавляет scope. Собственный destroy группы не содержит instance. История событий не воспроизводится. Ошибки обработчиков не прерывают очистку.</p>
+        <p>open означает появление увеличения, close — его скрытие. Сначала приходит statechange, затем соответствующее событие. События загрузки сообщают source, requestedSource и fallback. Устаревшие ответы игнорируются. Сигналы времени жизни прерываются до финального destroy. Внешние подписки InSales привязывайте к scope.signal.</p>
+        <p><a href="/examples/insales.js">Примеры галереи, AJAX-списка и быстрого просмотра InSales</a>. Полный контракт описан в README репозитория.</p>
+      </section>
+      <section id="methods">
+        <div class="section-heading"><span>04</span><h2>Методы</h2></div>
+        <p>Сохраните экземпляр, чтобы управлять его жизненным циклом. Повторный вызов конструктора для той же обёртки возвращает существующий экземпляр.</p>
+        <dl class="method-list"><div><dt><code>zoom.close()</code></dt><dd>Закрывает увеличение. Вызывайте перед сменой слайда или началом перетаскивания галереи.</dd></div><div><dt><code>zoom.refresh()</code></dt><dd>Заново находит фотографию и обновляет состояние после ручного изменения разметки. Изменения источника и замена фото отслеживаются автоматически.</dd></div><div><dt><code>zoom.destroy()</code></dt><dd>Закрывает увеличение, отключает обработчики и наблюдатели, восстанавливает атрибуты обёртки. Вызывайте при размонтировании компонента.</dd></div></dl>
+      </section>
+
+      <section id="appearance">
+        <div class="section-heading"><span>05</span><h2>Оформление</h2></div>
+        <p>Zoomix поддерживает <code>picture</code>, <code>srcset</code>, <code>object-fit</code> и <code>object-position</code>. Настройте лупу через CSS-переменные на обёртке.</p>
+        <div class="code-block"><div class="code-header"><span>CSS · размер и обводка лупы</span><button class="copy" type="button">Копировать</button></div><pre><code>.product-photo {
+  --zoomix-lens-size: 160px;
+  --zoomix-lens-outline: 2px solid #faf9f3;
+}</code></pre></div>
+        <p>По умолчанию размер лупы — <code>144px</code>, обводка — <code>2px solid white</code>. Также доступны <code>--zoomix-background</code> (белый фон), <code>--zoomix-marker</code> (<code>#fff4</code>) и <code>--zoomix-z-index</code> (<code>100</code>).</p>
+        <aside class="note">Автоматическое боковое окно добавляется в <code>body</code>. Для него задавайте CSS-переменные на <code>:root</code>; для <code>sideTarget</code> — на самой панели или её предке.</aside>
+      </section>
+
+      <section id="galleries">
+        <div class="section-heading"><span>06</span><h2>Вместе с галереей</h2></div>
+        <p>Создавайте экземпляр для обёртки каждого изображения, включая копии слайдов в loop-режиме. Закрывайте зум в начале перехода и исключите активную сенсорную поверхность из перетаскивания.</p>
+        <div class="table-scroll" role="region" aria-label="Настройки галерей" tabindex="0"><table><thead><tr><th>Галерея</th><th>Настройка перетаскивания</th></tr></thead><tbody><tr><td>Splide 4</td><td><code>noDrag: '.zoomix-touch, .zoomix-touch *'</code></td></tr><tr><td>Swiper 14</td><td><code>noSwipingSelector: '.zoomix-touch'</code></td></tr><tr><td>tvist 1</td><td>Добавьте <code>.zoomix-touch *</code> к <code>focusableElements</code>.</td></tr></tbody></table></div>
+        <p>При изменении набора слайдов подключайте новые обёртки и вызывайте <code>destroy()</code> для удалённых. Готовые адаптеры находятся в <code>examples/sliders.js</code>.</p>
+        <a class="text-link" href="/examples/sliders.html">Попробовать три галереи <span aria-hidden="true">↗</span></a>
+      </section>
+
+      <section id="controls">
+        <div class="section-heading"><span>07</span><h2>Управление</h2></div>
+        <dl class="method-list"><div><dt>Мышь</dt><dd>Наведите для увеличения, перемещайте курсор для осмотра. Уведите курсор, чтобы закрыть. Колесо прокручивает страницу.</dd></div><div><dt>Касание</dt><dd>Тап открывает зум внутри кадра. Следующим жестом перемещайте фото, повторным тапом закрывайте. При закрытом зуме работают свайпы галереи и прокрутка страницы.</dd></div><div><dt>Клавиатура</dt><dd><kbd>Tab</kbd> — перейти к фото. <kbd>Enter</kbd> или <kbd>Пробел</kbd> — переключить увеличение. Стрелки — перемещать фрагмент. <kbd>Esc</kbd> — закрыть.</dd></div></dl>
+      </section>
+
+      <section id="questions">
+        <div class="section-heading"><span>08</span><h2>Частые вопросы</h2></div>
+        <details class="disclosure"><summary>Почему фотография не увеличивается?</summary><p>Проверьте, что подключён CSS и загружен большой оригинал. Его разрешение должно превышать отображаемый размер фото. Если пикселей недостаточно для увеличения больше 1×, Zoomix оставляет обычную фотографию.</p></details>
+        <details class="disclosure"><summary>Что произойдёт без большого оригинала?</summary><p>Zoomix использует выбранный браузером источник превью. Это же происходит при ошибке загрузки <code>data-zoom-src</code>. Увеличение будет доступно, если у превью достаточно пикселей.</p></details>
+        <details class="disclosure"><summary>Можно ли менять режим после подключения?</summary><p>При автоматическом подключении меняйте атрибут <code>data-zoomix</code>, предварительно вызвав <code>close()</code>. Настройки конструктора задаются при первом создании: для их изменения вызовите <code>zoom.update({ mode, scale, sideTarget, enabled })</code>.</p></details>
+        <details class="disclosure"><summary>Почему на телефоне нет бокового окна или лупы?</summary><p>При сенсорном вводе все режимы используют увеличение внутри кадра. Это позволяет рассматривать детали жестом, не занимая дополнительное место на экране.</p></details>
+      </section>
+      <footer><span>Zoomix · v0.1.0</span><a href="#content">К началу ↑</a></footer>
+    </main>
+  </div>
+  <p id="copy-status" class="sr-only" role="status"></p>
+</body>
+</html>
+
+

@@ -1,0 +1,14 @@
+:root { color-scheme:light; font:16px/1.5 system-ui,sans-serif; color:#24352b; background:#faf9f3; }
+* {box-sizing:border-box} body {margin:0} main {max-width:1240px;margin:auto;padding:0 clamp(18px,5vw,72px) 100px}
+header {display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid #bec7b9}
+.wordmark {display:inline-flex;flex-shrink:0}
+.wordmark img {display:block;width:142px;height:auto}
+header nav {margin:0;gap:16px;font-size:14px;justify-content:flex-end} header {gap:20px}
+a {color:inherit;text-underline-offset:4px} h1 {font-size:clamp(44px,6vw,76px);letter-spacing:-.065em;line-height:1.05;margin:56px 0 16px}
+p {max-width:58ch;color:#536257} .modes,nav {display:flex;gap:6px;flex-wrap:wrap;margin:24px 0 18px}
+button {font:inherit;cursor:pointer;background:transparent;color:inherit;border:1px solid #a2b0a2;border-radius:5px;padding:6px 14px}
+button[aria-pressed=true],button:hover {background:#263d30;color:white}
+figure {width:min(100%,480px);margin:0} [data-zoomix] img:not(.zoomix-detail) {display:block;width:100%;height:auto}
+figcaption {border-top:1px solid #a5b5a7;display:flex;justify-content:space-between;padding:10px 0;font:13px/1.4 monospace}
+.gallery {width:min(100%,440px);margin:0!important;} .example {padding:16px 0 36px;border-bottom:1px solid #bec7b9}
+.example h2 {letter-spacing:-.04em} .sample {position:relative}.sample small {position:absolute;left:8px;bottom:8px;background:#24352b;color:#fff;padding:2px 8px;pointer-events:none}

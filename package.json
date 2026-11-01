@@ -1,0 +1,36 @@
+{
+  "name": "zoomix",
+  "version": "0.1.0",
+  "description": "Lightweight product image zoom for storefronts",
+  "type": "module",
+  "module": "./dist/zoomix.js",
+  "main": "./dist/zoomix.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/zoomix.js"
+    },
+    "./style.css": "./dist/zoomix.css",
+    "./browser": "./dist/zoomix.min.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/build.mjs",
+    "dev": "vite --host 127.0.0.1",
+    "test": "npm run build && npm run test:package && playwright test",
+    "test:package": "node scripts/test-package.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@splidejs/splide": "4.1.4",
+    "esbuild": "0.28.2",
+    "swiper": "14.4.0",
+    "tvist": "1.21.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

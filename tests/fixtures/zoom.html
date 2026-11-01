@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/dist/zoomix.css">
+  <style>
+    body { margin: 40px; }
+    #stage { margin: 20px 0; }
+    #photo { display: inline-block; vertical-align: top; }
+    #photo > img, #photo > picture > img { display: block; width: 320px; height: 200px; }
+  </style>
+  <script defer src="/dist/zoomix.min.js"></script>
+  <title>Zoomix regression fixture</title>
+</head>
+<body>
+  <button id="before">Before photo</button>
+  <div id="stage"><div id="photo" data-zoomix="inner"><img src="/tests/fixtures/landscape.png" width="320" height="200" alt="Camera"></div></div>
+  <button id="after">After photo</button>
+</body>
+</html>
