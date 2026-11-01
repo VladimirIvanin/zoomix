@@ -60,3 +60,24 @@ test('mobile contents navigate without horizontal page overflow', async ({ page 
   await page.getByRole('link', { name: 'Документация' }).click();
   await expect(page).toHaveURL(/\/docs\/$/);
 });
+
+test('side demo ratio control resizes both window and marker', async ({ page }) => {
+  await page.goto('/docs/');
+  const control = page.getByLabel('Пропорции окна и рамки');
+  await expect(control).toBeHidden();
+  await page.locator('[data-mode="side"]').click();
+  await expect(control).toBeVisible();
+  for (const ratio of ['1', '1.3333333333333333', '0.75', '1.7777777777777777']) {
+    await control.selectOption(ratio);
+    await page.locator('#demo-photo').hover();
+    for (const selector of ['.zoomix-side', '.zoomix-mark']) {
+      await expect.poll(async () => {
+        const b = await page.locator(selector).boundingBox();
+        return b ? Math.abs(b.width / b.height - Number(ratio)) : Infinity;
+      }).toBeLessThan(0.01);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.locator('[data-mode="inner"]').click();
+  await expect(control).toBeHidden();
+});

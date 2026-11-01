@@ -50,16 +50,31 @@ const descriptions = {
   lens: 'Круглая лупа следует за курсором. Рассмотрите фактуру и небольшие детали.',
 };
 const photo = document.querySelector('#demo-photo');
+const sideRatio = document.querySelector('#side-ratio');
+const sidePanel = document.querySelector('.demo-description');
 const demoZoom = new Zoomix(photo, {
-  sideTarget: document.querySelector('.demo-description'),
+  sideTarget: sidePanel,
+  sideAspectRatio: Number(sideRatio.value),
 });
+function syncSideRatio() {
+  const ratio = sideRatio.value ? Number(sideRatio.value) : null;
+  demoZoom.update({ sideAspectRatio: ratio });
+  sidePanel.style.setProperty('--demo-side-ratio', ratio ?? 'auto');
+  const mode = photo.dataset.zoomix;
+  document.querySelector('.demo-stage').dataset.demoMode = mode;
+  document.querySelector('#mode-code').textContent = `data-zoomix="${mode}"` +
+    (mode === 'side' && ratio ? ` data-zoom-side-aspect-ratio="${ratio}"` : '');
+}
+sideRatio.addEventListener('change', syncSideRatio);
+syncSideRatio();
 document.querySelectorAll('[data-mode]').forEach(button => {
   button.addEventListener('click', () => {
     demoZoom.close();
     photo.dataset.zoomix = button.dataset.mode;
     document.querySelectorAll('[data-mode]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
     document.querySelector('#mode-description').textContent = descriptions[button.dataset.mode];
-    document.querySelector('#mode-code').textContent = `data-zoomix="${button.dataset.mode}"`;
+    document.querySelector('.side-ratio-control').hidden = button.dataset.mode !== 'side';
+    syncSideRatio();
   });
 });
 

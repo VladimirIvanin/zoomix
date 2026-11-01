@@ -1,5 +1,80 @@
 import { test, expect, ready, openKeyboard, settle, hd } from './helpers.js';
 
+test('side ratio fits the target and native image, updates live and matches the marker crop', async ({ page }) => {
+  const root = await ready(page);
+  await root.evaluate(el => {
+    const target = document.createElement('div');
+    target.id = 'target'; target.style.cssText = 'width:800px;height:600px;border:5px solid red';
+    el.after(target);
+    window.zoom = window.Zoomix.get(el);
+    window.zoom.update({ mode: 'side', sideTarget: target, sideAspectRatio: 1 });
+  });
+  await openKeyboard(page);
+  for (const ratio of [1, 4 / 3, 16 / 9, 3 / 4, 9 / 16]) {
+    await page.evaluate(ratio => window.zoom.update({ sideAspectRatio: ratio }), ratio);
+    await expect.poll(async () => {
+      const box = await page.locator('.zoomix-side').boundingBox();
+      return Math.abs(box.width / box.height - ratio);
+    }).toBeLessThan(0.001);
+    for (const key of ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown']) {
+      await root.press(key);
+      await settle(page);
+      const v = await page.locator('.zoomix-side').boundingBox();
+      const d = await page.locator('.zoomix-detail').boundingBox();
+      const m = await page.locator('.zoomix-mark').boundingBox();
+      const p = await root.boundingBox();
+      expect(v.width).toBeLessThanOrEqual(640);
+      expect(v.height).toBeLessThanOrEqual(400);
+      expect(m.width).toBeCloseTo(v.width / 2, 0);
+      expect(m.height).toBeCloseTo(v.height / 2, 0);
+      expect(m.x - p.x).toBeCloseTo((v.x - d.x) / 2, 0);
+      expect(m.y - p.y).toBeCloseTo((v.y - d.y) / 2, 0);
+    }
+  }
+  await page.locator('#target').evaluate(el => { el.style.width = '180px'; el.style.height = '140px'; });
+  await expect.poll(async () => (await page.locator('.zoomix-side').boundingBox()).width).toBeCloseTo(78.75, 1);
+});
+
+test('side ratio HTML default, JS precedence, reset and invalid numbers', async ({ page }) => {
+  const root = await ready(page);
+  await root.evaluate(el => {
+    el.dataset.zoomix = 'side'; el.dataset.zoomSideAspectRatio = '1';
+  });
+  await openKeyboard(page);
+  const size = () => page.locator('.zoomix-side').evaluate(el => [el.offsetWidth, el.offsetHeight]);
+  expect(await size()).toEqual([200, 200]);
+  await root.evaluate(el => window.Zoomix.get(el).update({ sideAspectRatio: 0.75 }));
+  await expect.poll(size).toEqual([150, 200]);
+  await root.evaluate(el => window.Zoomix.get(el).update({ sideAspectRatio: null }));
+  await expect.poll(size).toEqual([200, 200]);
+  for (const value of [0, -1, NaN, Infinity]) {
+    await root.evaluate((el, value) => window.Zoomix.get(el).update({ sideAspectRatio: value }), value);
+    await expect.poll(size).toEqual([320, 200]);
+  }
+  await root.evaluate(el => {
+    delete el.dataset.zoomSideAspectRatio;
+    window.Zoomix.get(el).update({ sideAspectRatio: null });
+  });
+  await expect.poll(size).toEqual([320, 200]);
+});
+
+test('automatic side placement uses the chosen width for right, left and fallback', async ({ page }) => {
+  const root = await ready(page);
+  await page.setViewportSize({ width: 520, height: 800 });
+  await root.evaluate(el => window.Zoomix.get(el).update({ mode: 'side', sideAspectRatio: 0.5 }));
+  await openKeyboard(page);
+  const side = page.locator('.zoomix-side');
+  expect((await side.boundingBox()).width).toBe(100);
+  expect((await side.boundingBox()).x).toBe(372);
+  await page.setViewportSize({ width: 800, height: 800 });
+  await root.evaluate(el => { el.style.marginLeft = '400px'; window.Zoomix.get(el).refresh(); });
+  await expect.poll(async () => (await side.boundingBox())?.x).toBe(328);
+  await page.setViewportSize({ width: 400, height: 800 });
+  await root.evaluate(el => { el.style.marginLeft = '0'; window.Zoomix.get(el).refresh(); });
+  await expect(root.locator('.zoomix-inner')).toBeVisible();
+  expect((await root.locator('.zoomix-inner').boundingBox()).width).toBe(320);
+});
+
 // Known rectangles for the 320x200 source; these expectations do not call geometry().
 const fits = [
   ['contain', 'center', 320, 260, 0, 30, 320, 200],

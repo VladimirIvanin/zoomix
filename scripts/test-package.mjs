@@ -45,7 +45,7 @@ try {
   writeFileSync(join(consumer, 'consumer.ts'), `
     import Zoomix, { ZoomixScope, type ZoomixOptions, type ZoomMode, type ZoomixState } from 'zoomix';
     const mode: ZoomMode = 'side';
-    const options: ZoomixOptions = { mode, scale: 2, sideTarget: document.createElement('div') };
+    const options: ZoomixOptions = { mode, scale: 2, sideTarget: document.createElement('div'), sideAspectRatio: 4 / 3 };
     const zoom = new Zoomix(document.createElement('div'), options);
     const scope: ZoomixScope = Zoomix.mount(document.createElement('section'), {
       selector: '.photo', options: el => ({ scale: 2, sideTarget: el.parentElement })
@@ -53,7 +53,7 @@ try {
     scope.on('open', event => event.instance?.close(), { signal: scope.signal });
     const state: ZoomixState = zoom.getState();
     zoom.on('load', event => console.log(event.source, event.fallback));
-    zoom.update({ enabled: true, sideTarget: null }); zoom.open();
+    zoom.update({ enabled: true, sideTarget: null, sideAspectRatio: null }); zoom.open();
     zoom.close(); zoom.refresh(); zoom.destroy(); scope.destroy();
   `);
   run(join(project, 'node_modules/typescript/bin/tsc'), ['--noEmit', '--strict', '--target', 'ES2020', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', 'consumer.ts'], consumer);

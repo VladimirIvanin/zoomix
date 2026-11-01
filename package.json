@@ -1,6 +1,6 @@
 {
   "name": "zoomix",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Lightweight product image zoom for storefronts",
   "type": "module",
   "module": "./dist/zoomix.js",

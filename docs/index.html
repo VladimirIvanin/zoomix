@@ -99,20 +99,33 @@ if (photo) {
           <button data-mode="side" aria-pressed="false">Рядом <code>side</code></button>
           <button data-mode="lens" aria-pressed="false">Лупа <code>lens</code></button>
         </div>
+        <label class="side-ratio-control" hidden>Пропорции окна и рамки
+          <select id="side-ratio">
+            <option value="">По размеру панели</option>
+            <option value="1" selected>1:1 — квадрат</option>
+            <option value="1.3333333333333333">4:3</option>
+            <option value="1.5">3:2</option>
+            <option value="1.7777777777777777">16:9</option>
+            <option value="0.75">3:4</option>
+            <option value="0.5625">9:16</option>
+          </select>
+        </label>
         <div class="demo-stage"><figure><div id="demo-photo" data-zoomix="inner"><img src="/optic.svg" width="1600" height="1000" alt="Диафрагма объектива на координатной сетке" draggable="false"></div><figcaption><span>01 / Оптика</span><span>50 мм · f/1.8</span></figcaption></figure><div class="demo-description"><span class="demo-cross" aria-hidden="true">+</span><p id="mode-description" aria-live="polite">Увеличение внутри фотографии. Подходит для компактных карточек товара.</p><code id="mode-code">data-zoomix="inner"</code></div></div>
         <p class="caption">В этом примере <code>sideTarget</code> выводит детали в область с описанием рядом с фото. Без заданной панели окно появляется справа или слева; если места недостаточно, Zoomix переключается на <code>inner</code>. При касании всегда используется <code>inner</code>.</p>
       </section>
 
       <section id="options">
         <div class="section-heading"><span>03</span><h2>Параметры</h2></div>
-        <p>Передайте настройки при первом создании экземпляра: <code>new Zoomix(element, options)</code>. JS-настройки <code>mode</code>, <code>scale</code> и <code>zoomOn</code> имеют приоритет над HTML-атрибутами.</p>
+        <p>Передайте настройки при первом создании экземпляра: <code>new Zoomix(element, options)</code>. JS-настройки <code>mode</code>, <code>scale</code>, <code>zoomOn</code> и <code>sideAspectRatio</code> имеют приоритет над HTML-атрибутами.</p>
         <div class="table-scroll" role="region" aria-label="Параметры Zoomix" tabindex="0"><table><thead><tr><th>Параметр</th><th>По умолчанию</th><th>Описание</th></tr></thead><tbody>
           <tr><td><code>mode</code><small>data-zoomix</small></td><td><code>'inner'</code></td><td><code>'inner'</code>, <code>'side'</code> или <code>'lens'</code>.</td></tr>
           <tr><td><code>scale</code><small>data-zoom-scale</small></td><td><code>2</code></td><td>Желаемая кратность. Фактическое увеличение ограничено разрешением оригинала.</td></tr>
           <tr><td><code>zoomOn</code><small>data-zoom-on</small></td><td><code>'hover'</code></td><td><code>'hover'</code> — открывать наведением, клик сохраняет зум. <code>'click'</code> — открывать и закрывать левой кнопкой. Уход курсора или Escape закрывают в обоих режимах. Касания и клавиатура работают одинаково.</td></tr>
           <tr><td><code>sideTarget</code><small>Только JavaScript</small></td><td><code>undefined</code></td><td>HTMLElement для вывода режима <code>side</code>. Задайте размер этой панели в CSS.</td></tr>
+          <tr><td><code>sideAspectRatio</code><small>data-zoom-side-aspect-ratio</small></td><td><code>undefined</code></td><td>Отношение ширины бокового окна к высоте: <code>1</code> — квадрат, <code>4 / 3</code> — горизонтальное, <code>3 / 4</code> — вертикальное. Положительное конечное число; остальные значения дают автоматический размер. Рамка на фото соответствует показанному фрагменту.</td></tr>
           <tr><td><code>data-zoom-src</code><small>Атрибут на img</small></td><td>Источник превью</td><td>Адрес большого изображения. Если загрузка не удалась, используется источник превью.</td></tr>
         </tbody></table></div>
+        <p>Например: <code>zoom.update({ sideAspectRatio: 4 / 3 })</code> или <code>data-zoom-side-aspect-ratio="1.333333"</code>. Окно вписывается в <code>sideTarget</code>, сохраняя пропорции; без панели — в размер превью и высоту экрана. Разрешение увеличенного изображения также ограничивает размер. Для сброса JS-настройки передайте <code>null</code>: будет использован HTML-атрибут, а без него — автоматический размер. В режимах <code>inner</code> и <code>lens</code> этот параметр не применяется.</p>
         <p>Для открытия кликом добавьте <code>data-zoom-on="click"</code> к обёртке с <code>data-zoomix</code> или вызовите <code>zoom.update({ zoomOn: 'click' })</code>. Движение курсора осматривает открытый зум; перетаскивание не считается кликом. Смена <code>zoomOn</code> через <code>update()</code> закрывает текущий зум мыши.</p>
         <details class="disclosure"><summary>Увеличение в отдельной панели</summary><div class="code-block"><div class="code-header"><span>HTML + JavaScript</span><button class="copy" type="button">Копировать</button></div><pre><code>&lt;div id="photo"&gt;
   &lt;img src="/products/watch-640.jpg"
@@ -126,6 +139,7 @@ if (photo) {
   const zoom = new window.Zoomix(document.querySelector('#photo'), {
     mode: 'side',
     sideTarget: document.querySelector('#detail'),
+    sideAspectRatio: 1,
   });
 &lt;/script&gt;</code></pre></div></details>
       </section>
@@ -179,7 +193,7 @@ scope.destroy();</code></pre>
         <div class="section-heading"><span>08</span><h2>Частые вопросы</h2></div>
         <details class="disclosure"><summary>Почему фотография не увеличивается?</summary><p>Проверьте, что подключён CSS и загружен большой оригинал. Его разрешение должно превышать отображаемый размер фото. Если пикселей недостаточно для увеличения больше 1×, Zoomix оставляет обычную фотографию.</p></details>
         <details class="disclosure"><summary>Что произойдёт без большого оригинала?</summary><p>Zoomix использует выбранный браузером источник превью. Это же происходит при ошибке загрузки <code>data-zoom-src</code>. Увеличение будет доступно, если у превью достаточно пикселей.</p></details>
-        <details class="disclosure"><summary>Можно ли менять режим после подключения?</summary><p>При автоматическом подключении меняйте атрибуты <code>data-zoomix</code> и <code>data-zoom-on</code>, предварительно вызвав <code>close()</code>. Настройки конструктора задаются при первом создании: для их изменения вызовите <code>zoom.update({ mode, scale, zoomOn, sideTarget, enabled })</code>.</p></details>
+        <details class="disclosure"><summary>Можно ли менять режим после подключения?</summary><p>При автоматическом подключении меняйте атрибуты <code>data-zoomix</code>, <code>data-zoom-on</code> и <code>data-zoom-side-aspect-ratio</code>, предварительно вызвав <code>close()</code>. Настройки конструктора задаются при первом создании: для их изменения вызовите <code>zoom.update({ mode, scale, zoomOn, sideTarget, sideAspectRatio, enabled })</code>.</p></details>
         <details class="disclosure"><summary>Почему на телефоне нет бокового окна или лупы?</summary><p>При сенсорном вводе все режимы используют увеличение внутри кадра. Это позволяет рассматривать детали жестом, не занимая дополнительное место на экране.</p></details>
       </section>
       <footer><span>Zoomix · v0.1.0</span><a href="#content">К началу ↑</a></footer>

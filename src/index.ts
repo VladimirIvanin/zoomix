@@ -9,6 +9,8 @@ export interface ZoomixOptions {
   zoomOn?: ZoomOn;
   scale?: number;
   sideTarget?: HTMLElement | null;
+  /** Side window width / height. Positive number; null falls back to the HTML attribute or automatic sizing. */
+  sideAspectRatio?: number | null;
   enabled?: boolean;
 }
 export interface ZoomixState {
@@ -380,6 +382,13 @@ export class Zoomix {
     let box = { ...visible };
     let parent = this.root as HTMLElement;
     let fixed = false;
+    const sx = image.w * scale, sy = image.h * scale;
+    const ratio = this.options.sideAspectRatio ?? Number(this.root.dataset.zoomSideAspectRatio);
+    const sideRatio = Number.isFinite(ratio) && ratio > 0 ? ratio : 0;
+    const fitSide = (w: number, h: number) => {
+      box.w = Math.min(w, sx, Math.min(h, sy) * sideRatio);
+      box.h = box.w / sideRatio;
+    };
     if (mode === 'side') {
       const target = this.options.sideTarget;
       if (target) {
@@ -396,21 +405,25 @@ export class Zoomix {
         }
         const rect = target.getBoundingClientRect();
         box = { x: rect.left + target.clientLeft, y: rect.top + target.clientTop, w: target.clientWidth, h: target.clientHeight };
+        if (sideRatio) fitSide(box.w, box.h);
       } else {
+        if (sideRatio) fitSide(visible.w, Math.min(visible.h, window.innerHeight));
         const right = visible.x + visible.w + 12;
-        const left = visible.x - visible.w - 12;
+        const left = visible.x - box.w - 12;
         if (right + box.w <= document.documentElement.clientWidth || left >= 0) {
           box.x = right + box.w <= document.documentElement.clientWidth ? right : left;
           box.h = Math.min(box.h, window.innerHeight);
           box.y = clamp(box.y, 0, window.innerHeight - box.h);
           parent = document.body;
           fixed = true;
-        } else mode = 'inner';
+        } else {
+          mode = 'inner';
+          box = { ...visible };
+        }
       }
     }
     this.view.className = 'zoomix-view zoomix-' + mode;
     if (this.view.parentElement !== parent) parent.append(this.view);
-    const sx = image.w * scale, sy = image.h * scale;
     const pointX = clamp(image.x + this.u * image.w, visible.x, visible.x + visible.w);
     const pointY = clamp(image.y + this.v * image.h, visible.y, visible.y + visible.h);
     if (mode === 'lens') {
@@ -420,8 +433,11 @@ export class Zoomix {
       box.x = clamp(pointX - box.w / 2, visible.x, visible.x + visible.w - box.w);
       box.y = clamp(pointY - box.h / 2, visible.y, visible.y + visible.h - box.h);
     }
-    box.w = Math.min(box.w, sx);
-    box.h = Math.min(box.h, sy);
+    if (mode === 'side' && sideRatio) fitSide(Math.min(box.w, sx), Math.min(box.h, sy));
+    else {
+      box.w = Math.min(box.w, sx);
+      box.h = Math.min(box.h, sy);
+    }
     this.view.style.position = fixed ? 'fixed' : 'absolute';
     place(this.view, fixed ? box : localBox(box, parent));
     const follows = this.input === 'mouse' && mode !== 'side';
