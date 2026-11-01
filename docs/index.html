@@ -25,8 +25,8 @@
       <details class="contents" open>
         <summary>На этой странице</summary>
         <nav aria-label="Разделы документации">
-          <a href="#start" aria-current="location"><span>01</span> Быстрый старт</a>
-          <a href="#modes"><span>02</span> Режимы увеличения</a>
+          <a href="#modes" aria-current="location"><span>01</span> Режимы увеличения</a>
+          <a href="#start"><span>02</span> Быстрый старт</a>
           <a href="#options"><span>03</span> Параметры</a>
           <a href="#scopes"><span>04</span> Группы и подписки</a>
           <a href="#methods"><span>05</span> Методы</a>
@@ -46,8 +46,31 @@
         <div class="intro-meta"><span>TypeScript</span><span>Без runtime-зависимостей</span><span>Мышь · касание · клавиатура</span></div>
       </div>
 
+      <section id="modes">
+        <div class="section-heading"><span>01</span><h2>Режимы увеличения</h2></div>
+        <p>Выберите режим и наведите курсор на изображение. На сенсорном экране коснитесь его: увеличение всегда откроется внутри кадра.</p>
+        <div class="mode-picker" role="group" aria-label="Режим увеличения">
+          <button data-mode="inner" aria-pressed="true">В кадре <code>inner</code></button>
+          <button data-mode="side" aria-pressed="false">Рядом <code>side</code></button>
+          <button data-mode="lens" aria-pressed="false">Лупа <code>lens</code></button>
+        </div>
+        <label class="side-ratio-control" hidden>Пропорции окна и рамки
+          <select id="side-ratio">
+            <option value="">По размеру панели</option>
+            <option value="1" selected>1:1 — квадрат</option>
+            <option value="1.3333333333333333">4:3</option>
+            <option value="1.5">3:2</option>
+            <option value="1.7777777777777777">16:9</option>
+            <option value="0.75">3:4</option>
+            <option value="0.5625">9:16</option>
+          </select>
+        </label>
+        <div class="demo-stage"><figure><div id="demo-photo" data-zoomix="inner"><img src="/optic.svg" width="1600" height="1000" alt="Диафрагма объектива на координатной сетке" draggable="false"></div><figcaption><span>01 / Оптика</span><span>50 мм · f/1.8</span></figcaption></figure><div class="demo-description"><span class="demo-cross" aria-hidden="true">+</span><p id="mode-description" aria-live="polite">Увеличение внутри фотографии. Подходит для компактных карточек товара.</p><code id="mode-code">data-zoomix="inner"</code></div></div>
+        <p class="caption">В этом примере <code>sideTarget</code> выводит детали в область с описанием рядом с фото. Без заданной панели окно появляется справа или слева; если места недостаточно, Zoomix переключается на <code>inner</code>. При касании всегда используется <code>inner</code>.</p>
+      </section>
+
       <section id="start">
-        <div class="section-heading"><span>01</span><h2>Быстрый старт</h2></div>
+        <div class="section-heading"><span>02</span><h2>Быстрый старт</h2></div>
         <p>Выберите способ подключения. Для обычной HTML-страницы достаточно двух файлов и атрибута на обёртке фотографии.</p>
         <div class="tabs" role="tablist" aria-label="Способ подключения">
           <button id="tab-html" role="tab" aria-selected="true" aria-controls="panel-html" tabindex="0">HTML</button>
@@ -89,29 +112,6 @@ if (photo) {
           <p>ESM-сборка оставляет инициализацию приложению. В браузерной сборке конструктор доступен как <code>window.Zoomix</code>; для ручной настройки используйте обёртку без <code>data-zoomix</code>.</p>
         </div>
         <aside class="note"><strong>Одна обёртка — одна фотография.</strong> Превью и большой оригинал должны показывать одинаковый кадр с теми же пропорциями. Размер фотографии задаёт CSS вашей темы.</aside>
-      </section>
-
-      <section id="modes">
-        <div class="section-heading"><span>02</span><h2>Режимы увеличения</h2></div>
-        <p>Выберите режим и наведите курсор на изображение. На сенсорном экране коснитесь его: увеличение всегда откроется внутри кадра.</p>
-        <div class="mode-picker" role="group" aria-label="Режим увеличения">
-          <button data-mode="inner" aria-pressed="true">В кадре <code>inner</code></button>
-          <button data-mode="side" aria-pressed="false">Рядом <code>side</code></button>
-          <button data-mode="lens" aria-pressed="false">Лупа <code>lens</code></button>
-        </div>
-        <label class="side-ratio-control" hidden>Пропорции окна и рамки
-          <select id="side-ratio">
-            <option value="">По размеру панели</option>
-            <option value="1" selected>1:1 — квадрат</option>
-            <option value="1.3333333333333333">4:3</option>
-            <option value="1.5">3:2</option>
-            <option value="1.7777777777777777">16:9</option>
-            <option value="0.75">3:4</option>
-            <option value="0.5625">9:16</option>
-          </select>
-        </label>
-        <div class="demo-stage"><figure><div id="demo-photo" data-zoomix="inner"><img src="/optic.svg" width="1600" height="1000" alt="Диафрагма объектива на координатной сетке" draggable="false"></div><figcaption><span>01 / Оптика</span><span>50 мм · f/1.8</span></figcaption></figure><div class="demo-description"><span class="demo-cross" aria-hidden="true">+</span><p id="mode-description" aria-live="polite">Увеличение внутри фотографии. Подходит для компактных карточек товара.</p><code id="mode-code">data-zoomix="inner"</code></div></div>
-        <p class="caption">В этом примере <code>sideTarget</code> выводит детали в область с описанием рядом с фото. Без заданной панели окно появляется справа или слева; если места недостаточно, Zoomix переключается на <code>inner</code>. При касании всегда используется <code>inner</code>.</p>
       </section>
 
       <section id="options">
