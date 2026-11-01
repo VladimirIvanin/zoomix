@@ -2,13 +2,14 @@
 
 Процесс повторяет Tvist: GitHub Release запускает `.github/workflows/publish.yml`. Проверяется совпадение тега с package.json, выполняются браузерные тесты и проверка production-сайта, затем создаётся npm-архив. Из одного архива берутся файлы GitHub Release и пакет для npm. Обычные версии получают npm-тег `latest`, GitHub pre-release — `next`.
 
-## Однократная настройка сервисов
+## Текущее состояние
 
-1. Загрузить исходники и workflows в `VladimirIvanin/zoomix`, ветка `main`.
-2. В GitHub → Settings → Pages выбрать Source: **GitHub Actions**. Workflow `deploy-docs.yml` публикует сайт при push в main, публикации release и ручном запуске. Адрес: https://vladimirivanin.github.io/zoomix/ .
-3. Пакет `zoomix` ещё не опубликован. Первый выпуск выполнить вручную из проверенного исходного состояния: `npm ci`, установить браузеры Playwright, `npm test`, `npm run test:site`, `npm pack`, `npm login`, `npm publish ./zoomix-0.1.0.tgz --access public`. npm может запросить подтверждение входа/2FA.
-4. В npm → пакет zoomix → Settings → Trusted Publisher выбрать GitHub Actions: Organization/user **VladimirIvanin**, Repository **zoomix**, Workflow filename **publish.yml**, Environment оставить пустым. Разрешить прямой `npm publish`. Секрет NPM_TOKEN не нужен. Подробности: https://docs.npmjs.com/trusted-publishers/ .
-5. После ручного первого выпуска следующий автоматический выпуск должен иметь новую версию, например `0.1.1`. Уже опубликованную версию npm повторно не принимает. Для вручную опубликованной `0.1.0` не запускать автоматическую публикацию повторно.
+- Первый пакет `zoomix@0.1.0` опубликован в npm, тег `latest` указывает на `0.1.0`.
+- Trusted Publisher настроен: GitHub Actions, репозиторий `VladimirIvanin/zoomix`, workflow `publish.yml`, без environment. NPM_TOKEN не требуется.
+- GitHub Pages опубликован: https://vladimirivanin.github.io/zoomix/ . CI и deployment прошли успешно.
+- `0.1.0` опубликована вручную для первоначальной регистрации пакета. Следующий автоматический выпуск должен иметь новую версию, например `0.1.1`. Не создавать GitHub Release `v0.1.0` с повторной npm-публикацией.
+
+Настройка Trusted Publisher находится в npm → пакет zoomix → Settings. В случае переноса репозитория или переименования workflow обновить эту связь. Официальная справка: https://docs.npmjs.com/trusted-publishers/ .
 
 ## Последующие выпуски
 
