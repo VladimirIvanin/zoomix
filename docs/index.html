@@ -102,13 +102,15 @@ if (photo) {
 
       <section id="options">
         <div class="section-heading"><span>03</span><h2>Параметры</h2></div>
-        <p>Передайте настройки при первом создании экземпляра: <code>new Zoomix(element, options)</code>. JS-настройки <code>mode</code> и <code>scale</code> имеют приоритет над HTML-атрибутами.</p>
+        <p>Передайте настройки при первом создании экземпляра: <code>new Zoomix(element, options)</code>. JS-настройки <code>mode</code>, <code>scale</code> и <code>zoomOn</code> имеют приоритет над HTML-атрибутами.</p>
         <div class="table-scroll" role="region" aria-label="Параметры Zoomix" tabindex="0"><table><thead><tr><th>Параметр</th><th>По умолчанию</th><th>Описание</th></tr></thead><tbody>
           <tr><td><code>mode</code><small>data-zoomix</small></td><td><code>'inner'</code></td><td><code>'inner'</code>, <code>'side'</code> или <code>'lens'</code>.</td></tr>
           <tr><td><code>scale</code><small>data-zoom-scale</small></td><td><code>2</code></td><td>Желаемая кратность. Фактическое увеличение ограничено разрешением оригинала.</td></tr>
+          <tr><td><code>zoomOn</code><small>data-zoom-on</small></td><td><code>'hover'</code></td><td><code>'hover'</code> — открывать наведением, клик сохраняет зум. <code>'click'</code> — открывать и закрывать левой кнопкой. Уход курсора или Escape закрывают в обоих режимах. Касания и клавиатура работают одинаково.</td></tr>
           <tr><td><code>sideTarget</code><small>Только JavaScript</small></td><td><code>undefined</code></td><td>HTMLElement для вывода режима <code>side</code>. Задайте размер этой панели в CSS.</td></tr>
           <tr><td><code>data-zoom-src</code><small>Атрибут на img</small></td><td>Источник превью</td><td>Адрес большого изображения. Если загрузка не удалась, используется источник превью.</td></tr>
         </tbody></table></div>
+        <p>Для открытия кликом добавьте <code>data-zoom-on="click"</code> к обёртке с <code>data-zoomix</code> или вызовите <code>zoom.update({ zoomOn: 'click' })</code>. Движение курсора осматривает открытый зум; перетаскивание не считается кликом. Смена <code>zoomOn</code> через <code>update()</code> закрывает текущий зум мыши.</p>
         <details class="disclosure"><summary>Увеличение в отдельной панели</summary><div class="code-block"><div class="code-header"><span>HTML + JavaScript</span><button class="copy" type="button">Копировать</button></div><pre><code>&lt;div id="photo"&gt;
   &lt;img src="/products/watch-640.jpg"
        data-zoom-src="/products/watch-2400.jpg"
@@ -167,14 +169,14 @@ scope.destroy();</code></pre>
 
       <section id="controls">
         <div class="section-heading"><span>07</span><h2>Управление</h2></div>
-        <dl class="method-list"><div><dt>Мышь</dt><dd>Наведите для увеличения, перемещайте курсор для осмотра. Уведите курсор, чтобы закрыть. Колесо прокручивает страницу.</dd></div><div><dt>Касание</dt><dd>Тап открывает зум внутри кадра. Следующим жестом перемещайте фото, повторным тапом закрывайте. При закрытом зуме работают свайпы галереи и прокрутка страницы.</dd></div><div><dt>Клавиатура</dt><dd><kbd>Tab</kbd> — перейти к фото. <kbd>Enter</kbd> или <kbd>Пробел</kbd> — переключить увеличение. Стрелки — перемещать фрагмент. <kbd>Esc</kbd> — закрыть.</dd></div></dl>
+        <dl class="method-list"><div><dt>Мышь</dt><dd>Наведите для увеличения, перемещайте курсор для осмотра. Клик сохраняет зум. При <code>zoomOn: 'click'</code> первый клик открывает, повторный закрывает. Уход курсора закрывает в обоих режимах. Колесо прокручивает страницу.</dd></div><div><dt>Касание</dt><dd>Тап открывает зум внутри кадра. Следующим жестом перемещайте фото, повторным тапом закрывайте. При закрытом зуме работают свайпы галереи и прокрутка страницы.</dd></div><div><dt>Клавиатура</dt><dd><kbd>Tab</kbd> — перейти к фото. <kbd>Enter</kbd> или <kbd>Пробел</kbd> — переключить увеличение. Стрелки — перемещать фрагмент. <kbd>Esc</kbd> — закрыть.</dd></div></dl>
       </section>
 
       <section id="questions">
         <div class="section-heading"><span>08</span><h2>Частые вопросы</h2></div>
         <details class="disclosure"><summary>Почему фотография не увеличивается?</summary><p>Проверьте, что подключён CSS и загружен большой оригинал. Его разрешение должно превышать отображаемый размер фото. Если пикселей недостаточно для увеличения больше 1×, Zoomix оставляет обычную фотографию.</p></details>
         <details class="disclosure"><summary>Что произойдёт без большого оригинала?</summary><p>Zoomix использует выбранный браузером источник превью. Это же происходит при ошибке загрузки <code>data-zoom-src</code>. Увеличение будет доступно, если у превью достаточно пикселей.</p></details>
-        <details class="disclosure"><summary>Можно ли менять режим после подключения?</summary><p>При автоматическом подключении меняйте атрибут <code>data-zoomix</code>, предварительно вызвав <code>close()</code>. Настройки конструктора задаются при первом создании: для их изменения вызовите <code>zoom.update({ mode, scale, sideTarget, enabled })</code>.</p></details>
+        <details class="disclosure"><summary>Можно ли менять режим после подключения?</summary><p>При автоматическом подключении меняйте атрибуты <code>data-zoomix</code> и <code>data-zoom-on</code>, предварительно вызвав <code>close()</code>. Настройки конструктора задаются при первом создании: для их изменения вызовите <code>zoom.update({ mode, scale, zoomOn, sideTarget, enabled })</code>.</p></details>
         <details class="disclosure"><summary>Почему на телефоне нет бокового окна или лупы?</summary><p>При сенсорном вводе все режимы используют увеличение внутри кадра. Это позволяет рассматривать детали жестом, не занимая дополнительное место на экране.</p></details>
       </section>
       <footer><span>Zoomix · v0.1.0</span><a href="#content">К началу ↑</a></footer>

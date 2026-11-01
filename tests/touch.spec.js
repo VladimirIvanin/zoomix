@@ -4,7 +4,10 @@ test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 770 }
 
 test('touch uses inner mode, ignores compatibility mouse, and cleans cloned active slides', async ({ page }) => {
   const root = await ready(page);
-  await root.evaluate(el => el.dataset.zoomix = 'side');
+  await root.evaluate(el => {
+    el.dataset.zoomix = 'side';
+    window.Zoomix.get(el).update({ zoomOn: 'click' });
+  });
   await root.tap();
   await expect(root.locator('.zoomix-inner')).toBeVisible();
   await root.dispatchEvent('pointermove', { pointerType: 'mouse', clientX: 0, clientY: 0 });

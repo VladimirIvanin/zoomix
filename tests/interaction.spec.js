@@ -1,5 +1,111 @@
 import { test, expect, ready, openKeyboard, expectClosed, settle } from './helpers.js';
 
+for (const mode of ['inner', 'side', 'lens']) {
+  test(`${mode}: mouse clicks preserve hover zoom and its position`, async ({ page }) => {
+    const root = await ready(page);
+    await root.evaluate((el, mode) => {
+      el.dataset.zoomix = mode;
+      window.closes = 0;
+      window.Zoomix.get(el).on('close', () => window.closes++);
+      // Native context menus may take hover away from the page (Firefox).
+      el.addEventListener('contextmenu', e => e.preventDefault());
+    }, mode);
+    await root.hover({ position: { x: 90, y: 70 } });
+    const detail = page.locator('.zoomix-detail');
+    await expect(detail).toBeVisible();
+    const transform = await detail.evaluate(el => el.style.transform);
+    for (const button of ['left', 'right', 'middle']) {
+      await page.mouse.down({ button });
+      await settle(page);
+      await expect(detail).toBeVisible();
+      await page.mouse.up({ button });
+      await settle(page);
+      await expect(detail).toBeVisible();
+      expect(await detail.evaluate(el => el.style.transform)).toBe(transform);
+    }
+    expect(await page.evaluate(() => window.closes)).toBe(0);
+    await page.mouse.move(0, 0);
+    await expectClosed(page);
+  });
+
+  test(`${mode}: zoomOn click toggles without reopening on movement`, async ({ page }) => {
+    const root = await ready(page);
+    await root.evaluate((el, mode) => {
+      el.dataset.zoomix = mode;
+      el.dataset.zoomOn = 'click';
+    }, mode);
+    await root.hover();
+    await settle(page);
+    await expectClosed(page);
+    await root.click({ position: { x: 90, y: 70 } });
+    const detail = page.locator('.zoomix-detail');
+    await expect(page.locator(`.zoomix-${mode}`)).toBeVisible();
+    const transform = await detail.evaluate(el => el.style.transform);
+    const b = await root.boundingBox();
+    await page.mouse.move(b.x + 220, b.y + 150);
+    await expect.poll(() => detail.evaluate(el => el.style.transform)).not.toBe(transform);
+    await root.click();
+    await expectClosed(page);
+    await page.mouse.move(b.x + 120, b.y + 80);
+    await settle(page);
+    await expectClosed(page);
+    await root.click();
+    await expect(detail).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expectClosed(page);
+    await root.click();
+    await expect(detail).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expectClosed(page);
+    await root.hover();
+    await settle(page);
+    await expectClosed(page);
+  });
+}
+
+test('zoomOn click ignores drags, cancelled presses and non-primary buttons', async ({ page }) => {
+  const root = await ready(page);
+  await root.evaluate(el => window.Zoomix.get(el).update({ zoomOn: 'click' }));
+  const b = await root.boundingBox();
+  await root.hover();
+  await page.mouse.down();
+  await page.mouse.move(b.x + 70, b.y + 70);
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+  await page.mouse.up();
+  await expectClosed(page);
+  for (const button of ['right', 'middle']) {
+    await root.click({ button });
+    await expectClosed(page);
+  }
+  const pointer = { pointerType: 'mouse', pointerId: 1, isPrimary: true, button: 0, clientX: b.x + 60, clientY: b.y + 60 };
+  for (const type of ['pointerdown', 'pointercancel', 'pointerup']) await root.dispatchEvent(type, pointer);
+  await expectClosed(page);
+  await root.click();
+  await expect(page.locator('.zoomix-detail')).toBeVisible();
+});
+
+test('JS zoomOn overrides HTML; updates close mouse zoom and preserve keyboard control', async ({ page }) => {
+  const root = await ready(page);
+  await root.evaluate(el => {
+    el.dataset.zoomOn = 'click';
+    window.Zoomix.get(el).update({ zoomOn: 'hover' });
+  });
+  await root.hover();
+  await expect(page.locator('.zoomix-detail')).toBeVisible();
+  await root.evaluate(el => window.Zoomix.get(el).update({ zoomOn: 'click' }));
+  await expectClosed(page);
+  expect(await root.evaluate(el => window.Zoomix.get(el).getState().zoomOn)).toBe('click');
+  await root.hover({ position: { x: 60, y: 60 } });
+  await settle(page);
+  await expectClosed(page);
+  await openKeyboard(page);
+  await page.keyboard.press('Escape');
+  await expectClosed(page);
+  await root.evaluate(el => window.Zoomix.get(el).update({ zoomOn: 'hover' }));
+  await root.hover();
+  await expect(page.locator('.zoomix-detail')).toBeVisible();
+});
+
 test('rapid mouse leave and re-entry and keyboard dismissal stay usable', async ({ page }) => {
   const root = await ready(page);
   const b = await root.boundingBox();

@@ -2,18 +2,23 @@ import { test, expect, ready, openKeyboard, settle, expectClosed, delayedImage, 
 
 test.use({ hasTouch: true });
 
-for (const dismiss of ['api', 'escape', 'mouseleave', 'touch']) {
+for (const dismiss of ['api', 'escape', 'mouseleave', 'touch', 'click']) {
   test(`pending HD can be closed by ${dismiss} without reopening on load`, async ({ page }) => {
     const pending = await delayedImage(page, '/pending.png');
     const root = await ready(page);
     await root.locator('img:not(.zoomix-detail)').evaluate(img => img.dataset.zoomSrc = '/pending.png');
-    if (dismiss === 'mouseleave') await root.hover();
+    if (dismiss === 'click') {
+      await root.evaluate(el => window.Zoomix.get(el).update({ zoomOn: 'click' }));
+      await root.click();
+    }
+    else if (dismiss === 'mouseleave') await root.hover();
     else if (dismiss === 'touch') await root.tap();
     else { await root.focus(); await page.keyboard.press('Enter'); }
     await expect.poll(pending.count).toBe(1);
     if (dismiss === 'mouseleave') await page.mouse.move(0, 0);
     else if (dismiss === 'escape') await page.keyboard.press('Escape');
     else if (dismiss === 'touch') await root.tap();
+    else if (dismiss === 'click') await root.click();
     else await root.evaluate(el => new window.Zoomix(el).close());
     await expectClosed(page);
     pending.release(false);

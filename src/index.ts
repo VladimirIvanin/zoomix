@@ -3,8 +3,10 @@ export type { SubscriptionOptions } from './events.js';
 import { clamp, contains, geometry, type Box } from './geometry';
 
 export type ZoomMode = 'inner' | 'side' | 'lens';
+export type ZoomOn = 'hover' | 'click';
 export interface ZoomixOptions {
   mode?: ZoomMode;
+  zoomOn?: ZoomOn;
   scale?: number;
   sideTarget?: HTMLElement | null;
   enabled?: boolean;
@@ -16,6 +18,7 @@ export interface ZoomixState {
   loading: boolean;
   destroyed: boolean;
   mode: ZoomMode;
+  zoomOn: ZoomOn;
   scale: number;
   effectiveMode: ZoomMode | null;
   effectiveScale: number | null;
@@ -81,6 +84,7 @@ export class Zoomix {
     return { enabled: this.options.enabled !== false, active: !!this.input,
       visible: this.visible, loading: this.loading, destroyed: this.signal.aborted,
       mode: this.options.mode ?? (this.root.dataset.zoomix as ZoomMode) ?? 'inner',
+      zoomOn: this.zoomOn,
       scale: Number.isFinite(scale) ? scale : 2,
       effectiveMode: this.effectiveMode, effectiveScale: this.effectiveScale };
   }
@@ -103,12 +107,14 @@ export class Zoomix {
   disable() { this.update({ enabled: false }); }
   update(patch: ZoomixOptions) {
     if (this.signal.aborted || this.destroying) return;
+    const zoomOn = this.zoomOn;
     if ('sideTarget' in patch && patch.sideTarget !== this.options.sideTarget) {
       this.close();
       if (this.options.sideTarget) this.resize.unobserve(this.options.sideTarget);
       if (patch.sideTarget) this.resize.observe(patch.sideTarget);
     }
     this.options = { ...this.options, ...patch };
+    if (this.zoomOn !== zoomOn && this.input === 'mouse') this.close();
     if (this.options.enabled === false) this.close();
     this.changed();
     this.schedule();
@@ -138,6 +144,9 @@ export class Zoomix {
   private press?: { id: number; x: number; y: number; lastX: number; lastY: number; time: number; moved: boolean };
   private panX = 0;
   private panY = 0;
+  private get zoomOn(): ZoomOn {
+    return (this.options.zoomOn ?? this.root.dataset.zoomOn) === 'click' ? 'click' : 'hover';
+  }
 
   constructor(root: HTMLElement, options: ZoomixOptions = {}) {
     const mounted = (root as Root)[instanceKey];
@@ -163,7 +172,12 @@ export class Zoomix {
     root.addEventListener('pointerup', this.up, opts);
     root.addEventListener('pointercancel', this.cancel, opts);
     root.addEventListener('lostpointercapture', this.cancel, opts);
-    root.addEventListener('pointerleave', () => { if (this.input === 'mouse') this.close(); }, opts);
+    root.addEventListener('pointerleave', e => {
+      if (e.pointerType === 'mouse') {
+        this.press = undefined;
+        if (this.input === 'mouse') this.close();
+      }
+    }, opts);
     root.addEventListener('keydown', this.key, opts);
     root.addEventListener('blur', () => { if (this.input === 'keyboard') this.close(); }, opts);
     root.addEventListener('load', e => { if (e.target === this.img) this.invalidate(); }, { ...opts, capture: true });
@@ -224,29 +238,27 @@ export class Zoomix {
 
   private hover = (e: PointerEvent) => {
     if (e.pointerType !== 'mouse' || e.buttons || (this.input && this.input !== 'mouse')) return;
+    if (this.zoomOn === 'click' && !this.input) return;
     this.clientX = e.clientX;
     this.clientY = e.clientY;
     this.activate('mouse');
   };
   private down = (e: PointerEvent) => {
     if (this.options.enabled === false || this.signal.aborted) return;
-    if (e.pointerType === 'mouse') {
-      if (this.input === 'mouse') this.close();
-      return;
-    }
+    if (e.pointerType === 'mouse' && (this.zoomOn !== 'click' || e.button !== 0)) return;
     if (!e.isPrimary) { this.press = undefined; return; }
     this.press = { id: e.pointerId, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, time: e.timeStamp, moved: false };
-    if (this.input === 'touch') {
+    if (e.pointerType !== 'mouse' && this.input === 'touch') {
       e.stopPropagation();
       this.root.setPointerCapture(e.pointerId);
     }
   };
   private move = (e: PointerEvent) => {
     if (this.options.enabled === false || this.signal.aborted) return;
-    if (e.pointerType === 'mouse') { this.hover(e); return; }
     const p = this.press;
+    if (p && p.id === e.pointerId) p.moved ||= Math.hypot(e.clientX - p.x, e.clientY - p.y) > 7;
+    if (e.pointerType === 'mouse') { this.hover(e); return; }
     if (!p || p.id !== e.pointerId) return;
-    p.moved ||= Math.hypot(e.clientX - p.x, e.clientY - p.y) > 7;
     if (this.input === 'touch' && p.moved) {
       this.panX += p.lastX - e.clientX;
       this.panY += p.lastY - e.clientY;
@@ -260,7 +272,20 @@ export class Zoomix {
     if (this.options.enabled === false || this.signal.aborted) return;
     const p = this.press;
     this.press = undefined;
-    if (!p || p.id !== e.pointerId || p.moved || Math.hypot(e.clientX - p.x, e.clientY - p.y) > 7 || e.timeStamp - p.time > 350) return;
+    if (!p || p.id !== e.pointerId || p.moved || Math.hypot(e.clientX - p.x, e.clientY - p.y) > 7) return;
+    if (e.pointerType === 'mouse') {
+      if (this.zoomOn !== 'click' || e.button !== 0) return;
+      const g = this.img && geometry(this.img);
+      if (!g || !contains(g.visible, e.clientX, e.clientY)) return;
+      if (this.input) this.close();
+      else {
+        this.clientX = e.clientX;
+        this.clientY = e.clientY;
+        this.activate('mouse');
+      }
+      return;
+    }
+    if (e.timeStamp - p.time > 350) return;
     if (this.input === 'touch') { this.close(); return; }
     const g = this.img && geometry(this.img);
     if (!g || !contains(g.visible, e.clientX, e.clientY)) return;
